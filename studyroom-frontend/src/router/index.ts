@@ -1,10 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth, authInitialized } from '../lib/firebase'
+import LoginView from '../views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
+    /**
+     * Login com import estático (não lazy): após deploy no Vercel, um index.html em cache
+     * ainda apontava para um chunk LoginView-*.js antigo → "Failed to fetch dynamically imported module"
+     * ao dar logout e carregar /login. O bundle principal e o login ficam alinhados.
+     */
+    { path: '/login', name: 'login', component: LoginView },
     { path: '/rooms', name: 'rooms', component: () => import('../views/RoomsView.vue'), meta: { requiresAuth: true } },
     { path: '/bookings', name: 'bookings', component: () => import('../views/BookingsView.vue'), meta: { requiresAuth: true } },
     {
