@@ -1,12 +1,17 @@
 package com.project.studyroom.model;
 
 import com.google.cloud.firestore.annotation.DocumentId;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 public class User {
 
     @DocumentId
     private String id;
+    @NotBlank(message = "Name is required.")
     private String name;
+    @NotBlank(message = "Email is required.")
+    @Email(message = "Email must be valid.")
     private String email;
     private String department;
     private String role;

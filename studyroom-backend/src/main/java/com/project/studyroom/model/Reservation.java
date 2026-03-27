@@ -2,6 +2,8 @@ package com.project.studyroom.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.Date;
 
@@ -9,13 +11,16 @@ public class Reservation {
 
     @DocumentId
     private String id;
+    @NotBlank(message = "Room ID is required.")
     private String roomId;
     private String roomName;
     private String userId;
     private String userName;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @NotNull(message = "Start time is required.")
     private Date startTime;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @NotNull(message = "End time is required.")
     private Date endTime;
     private String status;
     private Date createdAt;

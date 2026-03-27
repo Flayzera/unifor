@@ -3,6 +3,7 @@ package com.project.studyroom.controller;
 import com.project.studyroom.dto.RoomStatusDTO;
 import com.project.studyroom.model.Room;
 import com.project.studyroom.service.RoomService;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class RoomController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> create(@RequestBody Room room) throws Exception {
+    public ResponseEntity<String> create(@Valid @RequestBody Room room) throws Exception {
             String id = roomService.createRoom(room);
             return ResponseEntity.ok("Sala criada com id " + id);
     }
