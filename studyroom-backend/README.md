@@ -1,50 +1,175 @@
-# API StudyRoom
+# StudyRoom — Backend (API)
 
-Backend desenvolvido em Java (Spring Boot) com banco de dados NoSQL (Firebase Firestore) e Autenticação (Firebase Auth).
+API REST em **Java 17** + **Spring Boot**, com **Firebase Admin SDK** para validar tokens (**Firebase Auth**) e acesso ao **Firestore**.
 
-## ⚠️ Configuração do Firebase:
+## Requisitos
 
-Para rodar este projeto localmente, você precisa do arquivo de credenciais do Firebase Admin SDK.
+- JDK 17
+- Maven (ou use `./mvnw` na raiz desta pasta)
+- Projeto Firebase com Firestore e Authentication
+- Arquivo JSON da **conta de serviço** (Firebase Console → Configurações → Contas de serviço → Gerar nova chave privada)
 
-Crie um projeto no Firebase.
+---
 
-Vá em Configurações > Contas de Serviço > Gerar nova chave privada.
+## Credenciais Firebase
 
-Renomeie o arquivo baixado para study-room-firebase-adminsdk.json.
+### Desenvolvimento local (classpath)
 
-Coloque o arquivo dentro da pasta src/main/resources/.
+1. Renomeie o JSON baixado para `study-room-firebase-adminsdk.json`.
+2. Coloque em: `src/main/resources/study-room-firebase-adminsdk.json`  
+3. **Não commite** este arquivo (adicione ao `.gitignore` se necessário).
+
+### Produção (Docker / Render / outro host)
+
+O código aceita credenciais nesta ordem:
+
+1. **`FIREBASE_SERVICE_ACCOUNT_JSON`** — conteúdo JSON completo da conta de serviço (uma linha ou variável de ambiente).
+2. **`GOOGLE_APPLICATION_CREDENTIALS`** — caminho absoluto para um arquivo JSON no disco (ex.: secret montado em `/etc/secrets/firebase-admin.json`).
+3. Fallback: recurso no classpath `study-room-firebase-adminsdk.json` (adequado ao dev local).
+
+No **Render**, use *Secret File* + `GOOGLE_APPLICATION_CREDENTIALS` apontando para o caminho do arquivo montado.
+
+---
+
+## Perfis Spring
+
+| Perfil | Arquivo | Uso |
+|--------|---------|-----|
+| default | `application.properties` | Base |
+| `dev` | `application-dev.properties` | Logs de request mais verbosos |
+| `prod` | `application-prod.properties` | Produção; `feature.external-fact.enabled=false` por padrão |
+
+Exemplo:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+./mvnw spring-boot:run
+```
+
+---
+
+## Como executar
+
+```bash
+chmod +x mvnw   # uma vez, se necessário
+./mvnw spring-boot:run
+```
+
+Servidor HTTP padrão: **porta 8080**.
+
+### Testes e JAR
+
+```bash
+./mvnw verify
+./mvnw package
+```
+
+O JAR gerado fica em `target/`.
+
+---
+
+## Docker
+
+```bash
+docker build -t studyroom-backend .
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/sa.json \
+  -v /caminho/local/sa.json:/run/secrets/sa.json:ro \
+  studyroom-backend
+```
+
+Na raiz do monorepo:
+
+```bash
+docker build -f studyroom-backend/Dockerfile -t studyroom-backend studyroom-backend
+```
+
+---
 
 ## Autenticação
 
-Todas as requisições (exceto rotas públicas, se houver) exigem o envio do ID Token do Firebase no header.
+Todas as rotas sob `/api/**` exigem usuário autenticado, salvo configuração explícita de segurança.
 
-- **Header:** `Authorization: Bearer <SEU_FIREBASE_ID_TOKEN>`
+Envie o ID Token do Firebase:
 
-## Fluxo de Usuário (User)
+```http
+Authorization: Bearer <FIREBASE_ID_TOKEN>
+```
 
-1. O Front-end faz o login usando Firebase Auth (Google, Email/Senha).
-2. Imediatamente após pegar o `uid` e gerar o Token, faça um POST para `/api/users` enviando `{ "name": "...", "email": "..." }` para criar o perfil no Firestore.
+Papéis:
 
-- `GET /api/users/me` -> Retorna os dados do perfil logado.
-- `POST /api/users/{uid}/promote` -> (Apenas ADM) Torna outro usuário administrador.
+- **`ROLE_ADMIN`** — quando a custom claim `admin: true` está no token Firebase.
+- **`ROLE_STUDENT`** — demais usuários autenticados.
 
-## Fluxo de Salas (Room)
+---
 
-- `GET /api/rooms` -> Retorna todas as salas.
-- `GET /api/rooms/available?start=ISO&end=ISO` -> Retorna salas livres num período.
-- `POST /api/rooms` -> (Apenas ADM) Cria nova sala `{ "name": "A1", "capacity": 10... }`.
-- `GET /api/rooms/status` -> (Apenas ADM) Retorna dashboard de ocupação atual.
+## Rotas principais
 
-## Fluxo de Reservas (Reservation)
+### Usuários
 
-- Datas devem ser enviadas no formato ISO UTC: `2026-03-12T14:00:00.000Z`
-- `POST /api/reservations` -> Cria reserva `{ "roomId": "id_da_sala", "startTime": "...", "endTime": "..." }`.
-- `GET /api/reservations/user/{userId}` -> Retorna reservas de um aluno específico.
-- `PATCH /api/reservations/{id}/cancel` -> Cancela a reserva (Obrigatório ser o dono ou ADM).
-- `PATCH /api/reservations/{id}/reschedule` -> Remarca horário `{ "newStart": "...", "newEnd": "..." }`.
+| Método | Caminho | Descrição |
+|--------|---------|-----------|
+| `POST` | `/api/users` | Cria/sincroniza perfil do usuário logado (`name`, `email`) |
+| `GET` | `/api/users/me` | Perfil do usuário logado (**404** se ainda não existir documento) |
+| `POST` | `/api/users/{uid}/promote` | Promove usuário a admin (**só admin**) |
 
-**Exclusivos do Administrador:**
+### Salas
 
-- `GET /api/reservations` -> Histórico global.
-- `GET /api/reservations/room/{roomId}` -> Visão por sala.
-- `GET /api/reservations/timeframe?start=ISO&end=ISO` -> Visão por período (agenda).
+| Método | Caminho | Descrição |
+|--------|---------|-----------|
+| `GET` | `/api/rooms` | Lista salas |
+| `GET` | `/api/rooms/available?start=...&end=...` | Salas livres no intervalo (ISO UTC) |
+| `POST` | `/api/rooms` | Cria sala (**admin**) |
+| `DELETE` | `/api/rooms/{id}` | Remove sala (**admin**) |
+| `GET` | `/api/rooms/status` | Dashboard (**admin**) |
+
+### Reservas
+
+| Método | Caminho | Descrição |
+|--------|---------|-----------|
+| `POST` | `/api/reservations` | Nova reserva |
+| `GET` | `/api/reservations` | Todas (**admin**) |
+| `GET` | `/api/reservations/user/{userId}` | Por usuário |
+| `GET` | `/api/reservations/room/{roomID}` | Por sala (**admin**) |
+| `GET` | `/api/reservations/timeframe?start=&end=` | Por período (**admin**) |
+| `PATCH` | `/api/reservations/{id}/cancel` | Cancelar |
+| `PATCH` | `/api/reservations/{id}/complete` | Concluir |
+| `PATCH` | `/api/reservations/{id}/reschedule` | Remarcar |
+
+Datas em **ISO UTC**, exemplo: `2026-03-12T14:00:00.000Z`.
+
+### Integração opcional (bônus)
+
+| Método | Caminho | Descrição |
+|--------|---------|-----------|
+| `GET` | `/api/integrations/random-fact` | Fato aleatório (API externa); pode retornar **503** se `feature.external-fact.enabled=false` |
+
+---
+
+## Contrato OpenAPI
+
+Veja [`openapi.yaml`](openapi.yaml) na mesma pasta deste README.
+
+---
+
+## Primeiro administrador (sem outro admin no sistema)
+
+Use o script Node que define a custom claim `admin: true` no Firebase Auth:
+
+```bash
+cd scripts
+npm install
+node set-admin-claim.mjs <UID_DO_USUARIO>
+```
+
+Instruções completas: [`scripts/README.md`](scripts/README.md).
+
+Depois, faça **logout e login** no app para o token renovar.  
+Demais promoções: `POST /api/users/{uid}/promote` com um admin autenticado.
+
+---
+
+## Documentação adicional
+
+- Monorepo (visão geral): [`../README.md`](../README.md)
