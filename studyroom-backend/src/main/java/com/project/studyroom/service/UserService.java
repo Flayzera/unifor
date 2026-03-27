@@ -1,6 +1,7 @@
 package com.project.studyroom.service;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.project.studyroom.exception.UserNotFoundException;
 import com.project.studyroom.model.User;
 import com.project.studyroom.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class UserService {
     public User findById(String uid) throws Exception {
         User user = userRepository.getById(uid);
         if (user == null) {
-            throw new RuntimeException("Perfil de usuário não encontrado.");
+            throw new UserNotFoundException("Perfil de usuário não encontrado.");
         }
         return user;
     }
