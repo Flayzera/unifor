@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: StudyRoom API
+  version: 1.0.0
+  description: REST API for rooms, reservations, and user profile management.
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  /api/users:
+    post:
+      summary: Create or sync user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Profile synchronized
+  /api/users/me:
+    get:
+      summary: Get current logged-in user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current profile
+  /api/users/{uid}/promote:
+    post:
+      summary: Promote user to admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User promoted
+  /api/rooms:
+    get:
+      summary: List rooms
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Room list
+    post:
+      summary: Create room (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Room created
+  /api/rooms/{id}:
+    delete:
+      summary: Delete room (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room deleted
+  /api/rooms/available:
+    get:
+      summary: List available rooms in timeframe
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Available rooms
+  /api/rooms/status:
+    get:
+      summary: Get occupancy dashboard (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current room status
+  /api/reservations:
+    get:
+      summary: List all reservations (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Reservation list
+    post:
+      summary: Create reservation
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Reservation created
+  /api/reservations/user/{userId}:
+    get:
+      summary: List reservations by user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User reservations
+  /api/reservations/room/{roomID}:
+    get:
+      summary: List reservations by room (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roomID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room reservations
+  /api/reservations/timeframe:
+    get:
+      summary: List reservations by timeframe (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Timeframe reservations
+  /api/reservations/{id}/cancel:
+    patch:
+      summary: Cancel reservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation cancelled
+  /api/reservations/{id}/complete:
+    patch:
+      summary: Complete reservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation completed
+  /api/reservations/{id}/reschedule:
+    patch:
+      summary: Reschedule reservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation rescheduled
+  /api/integrations/random-fact:
+    get:
+      summary: Get a random fact from external API (feature-flagged)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Random fact loaded
+        '503':
+          description: Integration disabled in this environment
