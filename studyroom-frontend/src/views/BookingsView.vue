@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import AppShell from '../components/AppShell.vue'
+import StatusBadge from '../components/StatusBadge.vue'
 import { api } from '../lib/api'
 import { auth } from '../lib/firebase'
 import type { Reservation } from '../types/api'
@@ -64,9 +65,14 @@ onMounted(load)
           <div>
             <p class="font-semibold">{{ r.roomName || r.roomId }}</p>
             <p class="text-sm text-on-surface-variant">{{ formatRange(r.startTime, r.endTime) }}</p>
-            <p class="text-xs mt-1 text-stone-500">
-              Status: {{ r.status || '—'
-              }}<template v-if="r.partySize != null"> · {{ r.partySize }} pessoa(s)</template>
+            <p class="text-xs mt-1 text-stone-500 flex flex-wrap items-center gap-2">
+              <span>Status:</span>
+              <StatusBadge
+                v-if="r.status === 'CONFIRMED' || r.status === 'CANCELLED' || r.status === 'COMPLETED'"
+                :status="r.status"
+              />
+              <span v-else>{{ r.status || '—' }}</span>
+              <template v-if="r.partySize != null"> · {{ r.partySize }} pessoa(s)</template>
             </p>
           </div>
           <div class="flex gap-2">
