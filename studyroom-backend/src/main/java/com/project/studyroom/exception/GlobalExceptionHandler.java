@@ -41,6 +41,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserNotFound(UserNotFoundException e) {
+        log.warn("Not found: {}", e.getMessage());
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(FeatureDisabledException.class)
     public ResponseEntity<ErrorResponseDTO> handleFeatureDisabled(FeatureDisabledException e) {
         log.warn("Feature disabled: {}", e.getMessage());
