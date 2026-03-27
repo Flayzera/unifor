@@ -25,6 +25,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   await authInitialized
+  await auth.authStateReady()
   const u = auth.currentUser
   if (to.meta.requiresAuth && !u) {
     return { name: 'login', query: { redirect: to.fullPath } }
