@@ -8,7 +8,7 @@ describe('StatusBadge', () => {
       props: { status: 'CONFIRMED' },
     })
 
-    expect(wrapper.get('[data-testid="status-badge"]').text()).toBe('confirmed')
+    expect(wrapper.get('[data-testid="status-badge"]').text()).toBe('confirmada')
     expect(wrapper.classes().join(' ')).toContain('text-green-700')
   })
 })

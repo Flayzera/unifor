@@ -15,7 +15,11 @@ const props = defineProps<{
   status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
 }>()
 
-const label = computed(() => props.status.toLowerCase())
+const label = computed(() => {
+  if (props.status === 'CONFIRMED') return 'confirmada'
+  if (props.status === 'CANCELLED') return 'cancelada'
+  return 'concluída'
+})
 
 const colorClass = computed(() => {
   if (props.status === 'CONFIRMED') return 'bg-green-100 text-green-700'
