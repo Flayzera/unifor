@@ -48,15 +48,13 @@ export async function syncBackendProfile() {
       console.warn('[studyroom] Backend recusou o token (401). Confira se o backend está no mesmo projeto Firebase.')
       return
     }
+    // 404 = perfil ainda não existe no Firestore; demais erros no GET também seguem para tentar POST
   }
   try {
     const name = u.displayName || u.email?.split('@')[0] || 'Usuário'
     const email = u.email || ''
     await api.post('/api/users', { name, email })
   } catch (e) {
-    console.warn(
-      '[studyroom] Não foi possível criar o perfil na API (backend rodando em localhost:8080?).',
-      e
-    )
+    console.warn('[studyroom] Não foi possível criar o perfil na API.', e)
   }
 }
