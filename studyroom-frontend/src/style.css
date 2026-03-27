@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #fff8f6;
+  --color-on-surface: #271813;
+  --color-on-surface-variant: #5b4039;
+  --color-primary: #b02f00;
+  --color-primary-container: #ff5722;
+  --color-secondary: #4c56af;
+  --color-secondary-container: #959efd;
+  --color-outline-variant: rgb(228, 190, 180);
+  --color-surface-container: #ffe9e4;
+  --color-surface-container-high: #ffe2da;
+  --color-surface-container-highest: #fadcd4;
+  --color-surface-container-low: #fff1ed;
+  --color-surface-container-lowest: #ffffff;
+  --color-tertiary-fixed: #c8e6ff;
+  --color-on-tertiary-fixed-variant: #004c6d;
+  --font-headline: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-headline);
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.signature-gradient,
+.primary-gradient {
+  background: linear-gradient(135deg, #b02f00 0%, #ff5722 100%);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+}

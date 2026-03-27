@@ -1,0 +1,11 @@
+{
+  "name": "studyroom-firebase-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^11.11.1"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
