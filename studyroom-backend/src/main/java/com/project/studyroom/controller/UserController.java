@@ -3,6 +3,7 @@ package com.project.studyroom.controller;
 import com.project.studyroom.config.security.AuthenticatedUser;
 import com.project.studyroom.model.User;
 import com.project.studyroom.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createProfile(@RequestBody User user, @AuthenticatedUser String uid) throws Exception {
+    public ResponseEntity<String> createProfile(@Valid @RequestBody User user, @AuthenticatedUser String uid) throws Exception {
 
         user.setId(uid);
         userService.create(user);
