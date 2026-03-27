@@ -20,6 +20,9 @@ const endLocal = ref("");
 const partySize = ref(1);
 const bookingBusy = ref(false);
 const bookingErr = ref("");
+const randomFact = ref("");
+const randomFactErr = ref("");
+const loadingFact = ref(false);
 
 /** Todas as salas; disponibilidade no intervalo atual vem de {@link availableIds}. */
 const allRooms = ref<Room[]>([]);
@@ -178,6 +181,22 @@ async function loadReservations() {
   }
 }
 
+async function loadRandomFact() {
+  loadingFact.value = true;
+  randomFactErr.value = "";
+  try {
+    const { data } = await api.get<{ provider: string; fact: string }>(
+      "/api/integrations/random-fact",
+    );
+    randomFact.value = data.fact;
+  } catch {
+    randomFact.value = "";
+    randomFactErr.value = "Integração externa indisponível neste ambiente.";
+  } finally {
+    loadingFact.value = false;
+  }
+}
+
 function openBook(r: Room) {
   if (!slotFree(r)) return;
   bookingRoom.value = r;
@@ -237,7 +256,7 @@ onMounted(async () => {
   reservationDate.value = todayStr();
   startTime.value =
     reservationDate.value === todayStr() ? nextSlotFromNow() : "09:00";
-  await Promise.all([refreshRoomsBrowse(), loadReservations()]);
+  await Promise.all([refreshRoomsBrowse(), loadReservations(), loadRandomFact()]);
 });
 
 watch(reservationDate, (d) => {
@@ -564,6 +583,34 @@ watch(
             <p v-else class="text-on-surface-variant text-sm">
               Nenhuma reserva futura. Escolha uma sala acima para começar.
             </p>
+          </section>
+
+          <section
+            class="bg-surface-container-low p-6 sm:p-8 rounded-xl border border-outline-variant/10"
+          >
+            <div class="flex items-center justify-between gap-4 mb-3">
+              <h3 class="font-headline text-xl font-bold text-on-surface">
+                Integração externa
+              </h3>
+              <button
+                type="button"
+                class="text-sm font-semibold text-primary hover:underline disabled:opacity-50"
+                :disabled="loadingFact"
+                @click="loadRandomFact"
+              >
+                Atualizar
+              </button>
+            </div>
+            <p class="text-sm text-on-surface-variant">
+              Exemplo de integração com API pública externa (catfact.ninja):
+            </p>
+            <p v-if="loadingFact" class="text-sm text-on-surface-variant mt-2">
+              Carregando fato aleatório...
+            </p>
+            <p v-else-if="randomFact" class="text-sm text-on-surface mt-2">
+              {{ randomFact }}
+            </p>
+            <p v-else class="text-sm text-orange-700 mt-2">{{ randomFactErr }}</p>
           </section>
         </div>
       </div>
