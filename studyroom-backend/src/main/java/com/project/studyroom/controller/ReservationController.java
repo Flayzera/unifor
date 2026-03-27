@@ -4,6 +4,7 @@ import com.project.studyroom.config.security.AuthenticatedUser;
 import com.project.studyroom.dto.RescheduleRequestDTO;
 import com.project.studyroom.model.Reservation;
 import com.project.studyroom.service.ReservationService;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Reservation reservation, @AuthenticatedUser String uid) throws Exception{
+    public ResponseEntity<?> create(@Valid @RequestBody Reservation reservation, @AuthenticatedUser String uid) throws Exception{
             reservation.setUserId(uid);
             String id = reservationService.save(reservation);
             return ResponseEntity.status(201).body("Reserva realizada com sucesso. ID: "+ id);
@@ -70,7 +71,7 @@ public class ReservationController {
 
     @PatchMapping("/{id}/reschedule")
     public ResponseEntity<String> reschedule(@PathVariable String id,
-                                             @RequestBody RescheduleRequestDTO request,
+                                             @Valid @RequestBody RescheduleRequestDTO request,
                                              @AuthenticatedUser String uid) throws Exception
     {
             reservationService.reschedule(id, request.getNewStart(), request.getNewEnd(), uid);
