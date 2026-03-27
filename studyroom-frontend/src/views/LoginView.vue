@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   signInWithEmailAndPassword,
@@ -18,10 +18,22 @@ const error = ref("");
 const busy = ref(false);
 const modeRegister = ref(false);
 
+/**
+ * Entra na área logada antes de sincronizar com a API.
+ * Se o backend estiver lento ou offline, o sync não bloqueia a navegação.
+ */
 async function afterAuth() {
-  await syncBackendProfile();
+  await auth.authStateReady();
+  const u = auth.currentUser;
+  if (u) await u.getIdToken();
   const redirect = (route.query.redirect as string) || "/rooms";
+  await nextTick();
   await router.replace(redirect);
+  try {
+    await syncBackendProfile();
+  } catch {
+    /* best-effort; login já concluiu no Firebase */
+  }
 }
 
 async function onGoogle() {
@@ -29,6 +41,7 @@ async function onGoogle() {
   busy.value = true;
   try {
     await signInWithPopup(auth, googleProvider);
+    await auth.authStateReady();
     await afterAuth();
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : "Falha no login com Google";
