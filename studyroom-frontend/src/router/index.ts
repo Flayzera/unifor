@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth, authInitialized } from '../lib/firebase'
 import LoginView from '../views/LoginView.vue'
+import HowToUseView from '../views/HowToUseView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,6 +12,7 @@ const router = createRouter({
      * ao dar logout e carregar /login. O bundle principal e o login ficam alinhados.
      */
     { path: '/login', name: 'login', component: LoginView },
+    { path: '/como-usar', name: 'how-to-use', component: HowToUseView },
     { path: '/rooms', name: 'rooms', component: () => import('../views/RoomsView.vue'), meta: { requiresAuth: true } },
     { path: '/bookings', name: 'bookings', component: () => import('../views/BookingsView.vue'), meta: { requiresAuth: true } },
     {
