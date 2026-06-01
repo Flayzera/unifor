@@ -55,3 +55,175 @@ h3 {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
 }
+
+/* --- Acessibilidade (extensão — terceira idade): ativado via <html class="a11y-*"> --- */
+
+html.a11y-large-text {
+  font-size: 112.5%;
+}
+
+html.a11y-large-text .a11y-touch-target {
+  min-height: 3rem;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  font-size: 1.0625rem;
+}
+
+html.a11y-large-text input,
+html.a11y-large-text select,
+html.a11y-large-text textarea {
+  font-size: 1.0625rem;
+  min-height: 3rem;
+}
+
+html.a11y-high-contrast {
+  --color-surface: #ffffff;
+  --color-on-surface: #000000;
+  --color-on-surface-variant: #1a1a1a;
+  --color-outline-variant: #000000;
+  --color-surface-container-low: #f5f5f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-highest: #eeeeee;
+}
+
+html.a11y-high-contrast .glass-panel,
+html.a11y-high-contrast .glass-nav {
+  background: #ffffff;
+  backdrop-filter: none;
+  border-color: #000000;
+}
+
+/* Botão flutuante — não ocupa o topo nem cobre o menu */
+.a11y-toggle-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 5.5rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.a11y-toggle-root > * {
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .a11y-toggle-root {
+    bottom: 1.5rem;
+  }
+}
+
+.a11y-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.75rem 1.125rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 14px rgba(39, 24, 19, 0.18);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.a11y-fab:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.a11y-fab--off {
+  background: #ffffff;
+  color: var(--color-on-surface);
+  border-color: var(--color-outline-variant);
+}
+
+.a11y-fab--off:hover {
+  background: var(--color-surface-container-low);
+}
+
+.a11y-fab--on {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.a11y-fab--on:hover {
+  filter: brightness(1.05);
+}
+
+.a11y-fab__label {
+  white-space: nowrap;
+}
+
+.a11y-help-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: #ffffff;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 2px 8px rgba(39, 24, 19, 0.1);
+}
+
+html.a11y-high-contrast .a11y-fab--off,
+html.a11y-high-contrast .a11y-help-chip {
+  background: #ffffff;
+  color: #000000;
+  border-color: #000000;
+}
+
+html.a11y-high-contrast .a11y-fab--on {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+html.a11y-high-contrast a:focus-visible,
+html.a11y-high-contrast button:focus-visible,
+html.a11y-high-contrast input:focus-visible,
+html.a11y-high-contrast select:focus-visible {
+  outline: 3px solid #000000;
+  outline-offset: 2px;
+}
+
+html.a11y-high-contrast [data-testid="status-badge"] {
+  border: 2px solid #000;
+  font-weight: 700;
+}
+
+.a11y-alert {
+  border-width: 2px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.a11y-btn-primary {
+  min-height: 3rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.a11y-skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 100;
+}
+
+.a11y-skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #000;
+  color: #fff;
+  border-radius: 0.5rem;
+}
