@@ -2,7 +2,10 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppShell from "../components/AppShell.vue";
+import BookingSummaryCard from "../components/BookingSummaryCard.vue";
+import StatusBadge from "../components/StatusBadge.vue";
 import { api } from "../lib/api";
+import { friendlyBookingError } from "../lib/friendlyApiError";
 import { auth } from "../lib/firebase";
 import type { Reservation, Room } from "../types/api";
 
@@ -123,6 +126,16 @@ const modalPartyOptions = computed(() => {
   return Array.from({ length: cap }, (_, i) => i + 1);
 });
 
+const modalSummary = computed(() => {
+  if (!bookingRoom.value || !startLocal.value || !endLocal.value) return null;
+  return {
+    roomName: bookingRoom.value.name,
+    startLabel: new Date(startLocal.value).toLocaleString("pt-BR"),
+    endLabel: new Date(endLocal.value).toLocaleString("pt-BR"),
+    partySize: partySize.value,
+  };
+});
+
 const upcomingReservations = computed(() => {
   const now = Date.now();
   return [...reservations.value]
@@ -228,12 +241,14 @@ async function confirmBook() {
     const { data } = await api.post<string>("/api/reservations", body);
     const idMatch = String(data).match(/ID:\s*(\S+)/i);
     const id = idMatch?.[1] || "";
+    const roomName = bookingRoom.value.name;
     bookingRoom.value = null;
     await loadReservations();
     await router.push({
       name: "booking-confirm",
       query: {
         room: body.roomId,
+        roomName,
         start: body.startTime,
         end: body.endTime,
         id,
@@ -241,12 +256,7 @@ async function confirmBook() {
       },
     });
   } catch (e: unknown) {
-    bookingErr.value =
-      e && typeof e === "object" && "response" in e
-        ? JSON.stringify(
-            (e as { response?: { data?: unknown } }).response?.data,
-          )
-        : "Falha ao reservar";
+    bookingErr.value = friendlyBookingError(e);
   } finally {
     bookingBusy.value = false;
   }
@@ -256,7 +266,11 @@ onMounted(async () => {
   reservationDate.value = todayStr();
   startTime.value =
     reservationDate.value === todayStr() ? nextSlotFromNow() : "09:00";
-  await Promise.all([refreshRoomsBrowse(), loadReservations(), loadRandomFact()]);
+  await Promise.all([
+    refreshRoomsBrowse(),
+    loadReservations(),
+    loadRandomFact(),
+  ]);
 });
 
 watch(reservationDate, (d) => {
@@ -312,10 +326,10 @@ watch(
               Encontre seu espaço
             </h2>
             <p class="text-sm text-on-surface-variant mb-6 max-w-2xl">
-              A lista abaixo responde só ao <strong>intervalo que você
-                escolher</strong> (não é “agora” no relógio). Se estiver livre
-              aqui mas ocupada às 18h, ela aparece livre até você buscar um
-              horário que corte essa reserva.
+              A lista abaixo responde só ao
+              <strong>intervalo que você escolher</strong> (não é “agora” no
+              relógio). Se estiver livre aqui mas ocupada às 18h, ela aparece
+              livre até você buscar um horário que corte essa reserva.
             </p>
 
             <form
@@ -494,7 +508,7 @@ watch(
                   </div>
                   <button
                     type="button"
-                    class="w-full font-bold py-3 rounded-lg transition-all active:scale-[0.98]"
+                    class="a11y-btn-primary w-full font-bold py-3 rounded-lg transition-all active:scale-[0.98]"
                     :class="
                       slotFree(r)
                         ? 'border-2 border-primary text-primary hover:bg-primary hover:text-white'
@@ -564,20 +578,17 @@ watch(
                     </p>
                   </div>
                 </div>
-                <div
-                  class="flex items-center gap-2 px-3 py-1 rounded-full text-[0.7rem] font-bold w-fit"
-                  :class="
-                    res.status === 'CONFIRMED'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-stone-200 text-stone-600'
+                <StatusBadge
+                  v-if="
+                    res.status === 'CONFIRMED' ||
+                    res.status === 'CANCELLED' ||
+                    res.status === 'COMPLETED'
                   "
-                >
-                  <span
-                    v-if="res.status === 'CONFIRMED'"
-                    class="w-1.5 h-1.5 rounded-full bg-emerald-600"
-                  />
-                  {{ res.status || "—" }}
-                </div>
+                  :status="res.status"
+                />
+                <span v-else class="text-sm text-on-surface-variant">{{
+                  res.status || "—"
+                }}</span>
               </li>
             </ul>
             <p v-else class="text-on-surface-variant text-sm">
@@ -610,7 +621,9 @@ watch(
             <p v-else-if="randomFact" class="text-sm text-on-surface mt-2">
               {{ randomFact }}
             </p>
-            <p v-else class="text-sm text-orange-700 mt-2">{{ randomFactErr }}</p>
+            <p v-else class="text-sm text-orange-700 mt-2">
+              {{ randomFactErr }}
+            </p>
           </section>
         </div>
       </div>
@@ -618,25 +631,34 @@ watch(
       <!-- Modal -->
       <div
         v-if="bookingRoom"
-        class="fixed inset-0 z-60 flex items-center justify-center bg-black/45 p-4 pointer-events-auto"
+        class="fixed inset-0 z-80 flex items-center justify-center bg-black/45 p-4 pointer-events-auto"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="'booking-dialog-title'"
         @click.self="bookingRoom = null"
       >
         <div
-          class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-xl border border-outline-variant/20"
+          class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-xl border border-outline-variant/20 max-h-[90vh] overflow-y-auto"
         >
-          <h3 class="font-bold text-lg font-headline mb-1">
+          <h3
+            id="booking-dialog-title"
+            class="font-bold text-xl font-headline mb-1"
+          >
             {{ bookingRoom.name }}
           </h3>
-          <p class="text-sm text-on-surface-variant mb-4">
-            Ajuste horários (local), quantidade de pessoas e confirme. A sala
-            continua inteira para o intervalo; o número é só registro (máx.
-            {{ bookingRoom.capacity }}).
+          <p class="text-base text-on-surface-variant mb-4">
+            Confira os horários e o resumo antes de confirmar (máx.
+            {{ bookingRoom.capacity }} pessoas registradas).
           </p>
-          <p v-if="bookingErr" class="text-sm text-red-700 mb-2">
+          <p
+            v-if="bookingErr"
+            class="a11y-alert text-red-800 bg-red-50 rounded-lg px-3 py-2 mb-3"
+            role="alert"
+          >
             {{ bookingErr }}
           </p>
           <div class="space-y-3">
-            <label class="block text-xs font-semibold text-on-surface-variant"
+            <label class="block text-sm font-semibold text-on-surface"
               >Início</label
             >
             <input
@@ -644,7 +666,7 @@ watch(
               type="datetime-local"
               class="w-full rounded-lg border border-outline-variant/30 bg-surface-container-highest px-3 py-2.5 text-on-surface"
             />
-            <label class="block text-xs font-semibold text-on-surface-variant"
+            <label class="block text-sm font-semibold text-on-surface"
               >Fim</label
             >
             <input
@@ -652,7 +674,7 @@ watch(
               type="datetime-local"
               class="w-full rounded-lg border border-outline-variant/30 bg-surface-container-highest px-3 py-2.5 text-on-surface"
             />
-            <label class="block text-xs font-semibold text-on-surface-variant"
+            <label class="block text-sm font-semibold text-on-surface"
               >Quantidade de pessoas</label
             >
             <select
@@ -664,21 +686,29 @@ watch(
               </option>
             </select>
           </div>
-          <div class="flex gap-2 mt-6">
+          <BookingSummaryCard
+            v-if="modalSummary"
+            class="mt-5"
+            :room-name="modalSummary.roomName"
+            :start-label="modalSummary.startLabel"
+            :end-label="modalSummary.endLabel"
+            :party-size="modalSummary.partySize"
+          />
+          <div class="flex flex-col sm:flex-row gap-2 mt-6">
             <button
               type="button"
-              class="flex-1 border border-outline-variant/40 rounded-lg py-2.5 font-medium text-on-surface hover:bg-surface-container-low"
+              class="a11y-touch-target flex-1 border-2 border-outline-variant/40 rounded-lg py-3 font-semibold text-on-surface hover:bg-surface-container-low"
               @click="bookingRoom = null"
             >
-              Cancelar
+              Voltar
             </button>
             <button
               type="button"
-              class="flex-1 primary-gradient text-white rounded-lg py-2.5 font-semibold disabled:opacity-50"
+              class="a11y-btn-primary flex-1 primary-gradient text-white rounded-lg py-3 font-bold disabled:opacity-50"
               :disabled="bookingBusy"
               @click="confirmBook"
             >
-              Confirmar
+              Confirmar reserva
             </button>
           </div>
         </div>

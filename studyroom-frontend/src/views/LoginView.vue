@@ -44,7 +44,10 @@ async function onGoogle() {
     await auth.authStateReady();
     await afterAuth();
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : "Falha no login com Google";
+    error.value =
+      e instanceof Error && e.message.includes("popup")
+        ? "A janela de login foi fechada. Tente de novo."
+        : "Não foi possível entrar com Google. Tente novamente ou use e-mail e senha.";
   } finally {
     busy.value = false;
   }
@@ -114,15 +117,34 @@ async function onEmailSubmit() {
         >
           <p
             v-if="error"
-            class="mb-4 text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2"
+            class="mb-4 a11y-alert text-red-800 bg-red-50 rounded-lg px-4 py-3"
+            role="alert"
           >
             {{ error }}
           </p>
 
+          <details
+            class="mb-6 rounded-lg border border-outline-variant/25 bg-surface-container-low/80 px-4 py-3"
+          >
+            <summary class="cursor-pointer font-semibold text-on-surface a11y-touch-target">
+              Como entrar com Google (passo a passo)
+            </summary>
+            <ol class="mt-3 space-y-2 text-base text-on-surface-variant list-decimal pl-5">
+              <li>Toque no botão <strong>Continuar com Google</strong> abaixo.</li>
+              <li>Escolha sua conta na lista (ou digite o e-mail).</li>
+              <li>Aguarde voltar para o sistema — você será levado às salas.</li>
+            </ol>
+            <p class="mt-3 text-sm">
+              <RouterLink to="/como-usar" class="text-primary font-semibold hover:underline"
+                >Ver guia completo de uso</RouterLink
+              >
+            </p>
+          </details>
+
           <form class="space-y-6" @submit.prevent="onEmailSubmit">
             <button
               type="button"
-              class="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-surface-container-lowest border border-outline-variant/30 rounded-lg font-semibold text-on-surface hover:bg-surface transition-all active:scale-[0.98]"
+              class="a11y-btn-primary w-full flex items-center justify-center gap-3 py-4 px-4 bg-surface-container-lowest border-2 border-outline-variant/30 rounded-lg font-semibold text-on-surface hover:bg-surface transition-all active:scale-[0.98]"
               :disabled="busy"
               @click="onGoogle"
             >
@@ -191,7 +213,7 @@ async function onEmailSubmit() {
 
             <button
               type="submit"
-              class="w-full py-4 px-6 signature-gradient text-white rounded-lg font-bold text-lg shadow-lg shadow-primary/20 active:scale-[0.97] transition-all disabled:opacity-60"
+              class="a11y-btn-primary w-full py-4 px-6 signature-gradient text-white rounded-lg font-bold text-lg shadow-lg shadow-primary/20 active:scale-[0.97] transition-all disabled:opacity-60"
               :disabled="busy"
             >
               {{ modeRegister ? "Criar conta" : "Entrar no portal" }}

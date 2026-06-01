@@ -2,9 +2,15 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '../components/AppShell.vue'
+import BookingSummaryCard from '../components/BookingSummaryCard.vue'
 
 const route = useRoute()
 const id = computed(() => (route.query.id as string) || '')
+const roomLabel = computed(() => {
+  const name = route.query.roomName as string | undefined
+  const idQ = route.query.room as string | undefined
+  return name || idQ || 'Sala reservada'
+})
 const start = computed(() => (route.query.start as string) || '')
 const end = computed(() => (route.query.end as string) || '')
 const partySize = computed(() => {
@@ -16,7 +22,7 @@ const partySize = computed(() => {
 
 function fmt(iso: string) {
   try {
-    return new Date(iso).toLocaleString()
+    return new Date(iso).toLocaleString('pt-BR')
   } catch {
     return iso
   }
@@ -25,30 +31,48 @@ function fmt(iso: string) {
 
 <template>
   <AppShell>
-    <div class="max-w-lg mx-auto px-6 py-16 text-center">
+    <div class="max-w-lg mx-auto px-6 py-12 sm:py-16 text-center">
       <div
-        class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-800 mb-6"
+        class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-900 mb-6"
+        role="img"
+        aria-label="Sucesso"
       >
-        <span class="material-symbols-outlined text-3xl">check_circle</span>
+        <span class="material-symbols-outlined text-4xl">check_circle</span>
       </div>
-      <h1 class="text-2xl font-extrabold font-headline mb-2">Reserva confirmada</h1>
-      <p class="text-on-surface-variant text-sm mb-6">
-        Sua solicitação foi registrada. Você pode gerenciar o agendamento em <strong>Minhas reservas</strong>.
+      <h1 class="text-3xl font-extrabold font-headline mb-3 text-on-surface">
+        Reserva confirmada
+      </h1>
+      <p class="text-on-surface-variant text-lg mb-8 leading-relaxed">
+        Sua reserva foi registrada com sucesso. Você pode ver todos os detalhes em
+        <strong>Minhas reservas</strong>.
       </p>
-      <div class="rounded-xl border border-outline-variant/20 bg-surface-container-low text-left p-5 text-sm space-y-2">
-        <p v-if="id"><span class="text-on-surface-variant">ID:</span> {{ id }}</p>
-        <p v-if="start"><span class="text-on-surface-variant">Início:</span> {{ fmt(start) }}</p>
-        <p v-if="end"><span class="text-on-surface-variant">Fim:</span> {{ fmt(end) }}</p>
-        <p v-if="partySize != null">
-          <span class="text-on-surface-variant">Pessoas:</span> {{ partySize }}
-        </p>
+
+      <BookingSummaryCard
+        v-if="start && end"
+        class="text-left mb-8"
+        :room-name="roomLabel"
+        :start-label="fmt(start)"
+        :end-label="fmt(end)"
+        :party-size="partySize"
+      />
+      <p v-else-if="id" class="text-base text-on-surface-variant mb-8">
+        Código da reserva: <strong>{{ id }}</strong>
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <RouterLink
+          to="/bookings"
+          class="a11y-btn-primary inline-block primary-gradient text-white font-bold px-8 py-4 rounded-lg"
+        >
+          Ver minhas reservas
+        </RouterLink>
+        <RouterLink
+          to="/rooms"
+          class="a11y-touch-target inline-block border-2 border-primary text-primary font-bold px-8 py-4 rounded-lg hover:bg-primary/5"
+        >
+          Voltar às salas
+        </RouterLink>
       </div>
-      <RouterLink
-        to="/bookings"
-        class="inline-block mt-8 primary-gradient text-white font-semibold px-6 py-3 rounded-lg"
-      >
-        Ver minhas reservas
-      </RouterLink>
     </div>
   </AppShell>
 </template>
