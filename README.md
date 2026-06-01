@@ -30,7 +30,7 @@ Este monorepo cobre os **requisitos técnicos** típicos de um trabalho full sta
 | **Testes** | Guia de execução local e CI: [`docs/testing.md`](docs/testing.md) (JUnit/Mockito no backend, Vitest no frontend). *Cobertura publicada no CI: opcional.* |
 | **Bônus** | *Feature flag* `feature.external-fact.enabled` + [`GET /api/integrations/random-fact`](studyroom-backend/openapi.yaml) (API externa). |
 
-Checklist item a item (marcar o que a equipe já cumpriu): [`docs/scope-checklist.md`](docs/scope-checklist.md). Modelo do relatório técnico: [`docs/technical-report-template.md`](docs/technical-report-template.md).
+Checklist item a item (marcar o que a equipe já cumpriu): [`docs/scope-checklist.md`](docs/scope-checklist.md). Modelo do relatório técnico: [`docs/technical-report-template.md`](docs/technical-report-template.md). Plano de acessibilidade (extensão — terceira idade): [`docs/plano-acessibilidade-terceira-idade.md`](docs/plano-acessibilidade-terceira-idade.md). Comparação antes/depois (modo padrão × acessível): [`docs/comparacao-acessibilidade.md`](docs/comparacao-acessibilidade.md).
 
 ---
 

@@ -54,8 +54,13 @@ Em **`npm run dev`**, o `VITE_API_URL` é ignorado para a API: o Vite faz **prox
 Definidas em `src/router/index.ts`:
 
 - `/login` — login
+- `/como-usar` — guia de uso (público; logado usa menu com AppShell)
 - `/rooms`, `/bookings`, `/booking/confirm` — exigem autenticação (`requiresAuth`)
 - `/admin` — exige usuário com claim `admin` no token Firebase
+
+## Acessibilidade (extensão — terceira idade)
+
+Botão flutuante **Modo fácil** / **Modo normal** (texto maior + alto contraste juntos). A interface padrão permanece; veja [`../docs/comparacao-acessibilidade.md`](../docs/comparacao-acessibilidade.md).
 
 ---
 
